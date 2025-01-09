@@ -3,11 +3,13 @@ package com.ametov.postgres_test.user.entity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @SuperBuilder
 @Entity
 @Table(name = "users")
