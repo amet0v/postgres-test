@@ -1,17 +1,17 @@
 package com.ametov.postgres_test.user.controller;
 
-import com.ametov.postgres_test.user.dto.request.CreateUserRequest;
+import com.ametov.postgres_test.user.dto.request.UserRequest;
 import com.ametov.postgres_test.user.dto.response.UserResponse;
 import com.ametov.postgres_test.user.entity.UserEntity;
 import com.ametov.postgres_test.user.exception.UserNotFoundException;
 import com.ametov.postgres_test.user.repository.UserRepository;
 import com.ametov.postgres_test.user.routes.UserRoutes;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class UserApiController {
     }
 
     @PostMapping(UserRoutes.CREATE)
-    public UserResponse create(@RequestBody CreateUserRequest request) {
+    public UserResponse create(@RequestBody UserRequest request) {
         UserEntity user = UserEntity.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -65,5 +65,22 @@ public class UserApiController {
         );
 
         return userRepository.findAll(example, pageable).stream().map(UserResponse::of).collect(Collectors.toList());
+    }
+
+    @PutMapping(UserRoutes.BY_ID)
+    public UserResponse edit(@PathVariable Long id, @RequestBody UserRequest request) throws UserNotFoundException {
+        UserEntity user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+
+        user = userRepository.save(user);
+
+        return UserResponse.of(user);
+    }
+
+    @DeleteMapping(UserRoutes.BY_ID)
+    public String delete(@PathVariable Long id) throws UserNotFoundException {
+        userRepository.deleteById(id);
+        return HttpStatus.OK.name();
     }
 }
