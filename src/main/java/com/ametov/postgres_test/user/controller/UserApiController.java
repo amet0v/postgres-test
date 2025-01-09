@@ -6,6 +6,7 @@ import com.ametov.postgres_test.user.entity.UserEntity;
 import com.ametov.postgres_test.user.exception.UserNotFoundException;
 import com.ametov.postgres_test.user.repository.UserRepository;
 import com.ametov.postgres_test.user.routes.UserRoutes;
+import com.ametov.postgres_test.user.sevice.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -31,6 +32,14 @@ public class UserApiController {
 
         user = userRepository.save(user);
         return user;
+    }
+
+    @PostMapping(UserRoutes.INIT)
+    public String init() {
+        for (int i = 0; i < 10000; i++) {
+            userRepository.save(UserService.createUser());
+        }
+        return HttpStatus.OK.name();
     }
 
     @PostMapping(UserRoutes.CREATE)
