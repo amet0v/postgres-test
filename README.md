@@ -6,3 +6,5 @@ test REST-API app with postgreSQL
 API
 /api/v1/user?query=[параметр поиску]&size=[X]&page=[X] - Поиск пользователя по имени или фамилии(size - кол-во записей, по умолчанию 10, page - страница, по умолчанию 0)
 /api/v1/user/init - Генерирование 10 000 пользователей
+
++Mockito тесты
