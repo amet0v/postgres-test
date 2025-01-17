@@ -3,28 +3,40 @@ package com.ametov.postgres_test.user.controller;
 import com.ametov.postgres_test.user.dto.request.UserRequest;
 import com.ametov.postgres_test.user.dto.response.UserResponse;
 import com.ametov.postgres_test.user.entity.UserEntity;
+import com.ametov.postgres_test.user.exception.BadRequestException;
 import com.ametov.postgres_test.user.exception.UserNotFoundException;
 import com.ametov.postgres_test.user.repository.UserRepository;
 import com.ametov.postgres_test.user.routes.UserRoutes;
-import com.ametov.postgres_test.user.sevice.UserService;
+import com.ametov.postgres_test.user.service.UserService;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@AllArgsConstructor
+//@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserApiController {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Value("${init.email}")
+    private String initUser;
+    @Value("${init.password}")
+    private String initPassword;
 
     @GetMapping("/")
-    public UserEntity test() {
+    public UserEntity root() {
         UserEntity user = UserEntity.builder()
                 .firstName("test")
                 .lastName("test")
@@ -43,10 +55,14 @@ public class UserApiController {
     }
 
     @PostMapping(UserRoutes.CREATE)
-    public UserResponse create(@RequestBody UserRequest request) {
+    public UserResponse create(@RequestBody UserRequest request) throws BadRequestException {
+        request.validate();
+
         UserEntity user = UserEntity.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
         user = userRepository.save(user);
@@ -91,5 +107,25 @@ public class UserApiController {
     public String delete(@PathVariable Long id) throws UserNotFoundException {
         userRepository.deleteById(id);
         return HttpStatus.OK.name();
+    }
+
+    @GetMapping(UserRoutes.NOT_SECURED_INIT)
+    public UserResponse not_secured_init(){
+        Optional<UserEntity> checkUser = userRepository.findByEmail(initUser);
+        UserEntity user;
+
+        if(checkUser.isEmpty()){
+            user = UserEntity.builder()
+                    .firstName("Default")
+                    .lastName("Default")
+                    .email(initUser)
+                    .password(passwordEncoder.encode(initPassword))
+                    .build();
+
+            userRepository.save(user);
+        } else {
+            user = checkUser.get();
+        }
+        return UserResponse.of(user);
     }
 }

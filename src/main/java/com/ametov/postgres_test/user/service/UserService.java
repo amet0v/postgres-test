@@ -1,6 +1,5 @@
-package com.ametov.postgres_test.user.sevice;
+package com.ametov.postgres_test.user.service;
 
-import com.ametov.postgres_test.user.dto.request.UserRequest;
 import com.ametov.postgres_test.user.entity.UserEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

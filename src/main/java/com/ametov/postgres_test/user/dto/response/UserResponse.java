@@ -7,12 +7,18 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
-public class UserResponse extends UserEntity {
+public class UserResponse{
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private String email;
+
     public static UserResponse of(UserEntity user){
         return UserResponse.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
+                .email(user.getEmail())
                 .build();
     }
 }
