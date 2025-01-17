@@ -58,7 +58,7 @@ public class WebTests {
                 .build();
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.post(UserRoutes.CREATE)
+                        MockMvcRequestBuilders.post(UserRoutes.REGISTRATION)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 ).andDo(print())

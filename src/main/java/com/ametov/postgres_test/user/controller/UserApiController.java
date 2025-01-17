@@ -4,6 +4,7 @@ import com.ametov.postgres_test.user.dto.request.UserRequest;
 import com.ametov.postgres_test.user.dto.response.UserResponse;
 import com.ametov.postgres_test.user.entity.UserEntity;
 import com.ametov.postgres_test.user.exception.BadRequestException;
+import com.ametov.postgres_test.user.exception.UserAlreadyExistException;
 import com.ametov.postgres_test.user.exception.UserNotFoundException;
 import com.ametov.postgres_test.user.repository.UserRepository;
 import com.ametov.postgres_test.user.routes.UserRoutes;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -54,9 +56,12 @@ public class UserApiController {
         return HttpStatus.OK.name();
     }
 
-    @PostMapping(UserRoutes.CREATE)
-    public UserResponse create(@RequestBody UserRequest request) throws BadRequestException {
+    @PostMapping(UserRoutes.REGISTRATION)
+    public UserResponse registration(@RequestBody UserRequest request) throws BadRequestException, UserAlreadyExistException {
         request.validate();
+
+        Optional<UserEntity> checkUser = userRepository.findByEmail(request.getEmail());
+        if (checkUser.isPresent()) throw new UserAlreadyExistException();
 
         UserEntity user = UserEntity.builder()
                 .firstName(request.getFirstName())
@@ -92,11 +97,13 @@ public class UserApiController {
         return userRepository.findAll(example, pageable).stream().map(UserResponse::of).collect(Collectors.toList());
     }
 
-    @PutMapping(UserRoutes.BY_ID)
-    public UserResponse edit(@PathVariable Long id, @RequestBody UserRequest request) throws UserNotFoundException {
-        UserEntity user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    @PutMapping(UserRoutes.EDIT)
+    public UserResponse edit(Principal principal, @RequestBody UserRequest request) throws UserNotFoundException {
+        UserEntity user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
         if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
         if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        if (request.getPassword() != null) user.setEmail(passwordEncoder.encode(request.getPassword()));
 
         user = userRepository.save(user);
 
